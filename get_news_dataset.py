@@ -12,18 +12,27 @@ def get_news_dataset():
 			f_csv = csv.reader(f)
 			for row in f_csv:
 				if row[0] != "":
+					if each_filename == "2017_social_utf8.csv":
 
-					# Create the key
-					if not total_data.__contains__(get_date(row[5])):
-						total_data[get_date(row[5])] = []
-					
-					# Create the key
-					if each_filename == "2016_news_utf8.csv":
-						if row[4] not in []:
-							total_data[get_date(row[5])].append(row[11])
+						# Create the key
+						if not total_data.__contains__(get_date(row[11])):
+							total_data[get_date(row[11])] = []
+
+						# Append content
+						if (row[5] in ["yahoo股市","yahoo奇摩理財","聯合財經網","MoneyDJ理財網"]) or (row[5] == "Ptt" and row[6] in ["STOCK","PC_Shopping"]) or (row[5] == "mobile01" and row[6] in ["手機","筆電","電腦","蘋果"]) or (row[5] == "鉅亨網" and row[6] not in ["海外房產"]):
+							# print(row[5])
+							# print(row[6])
+							total_data[get_date(row[11])].append(row[14])
 					else:
-						total_data[get_date(row[5])].append(row[11])
-	print(total_data)
+						# Create the key
+						if not total_data.__contains__(get_date(row[5])):
+							total_data[get_date(row[5])] = []
+
+						# Append content
+						if (row[3] in ["yahoo股市","yahoo奇摩理財","聯合財經網","MoneyDJ理財網"]) or (row[3] == "Ptt" and row[4] in ["STOCK","PC_Shopping"]) or (row[3] == "mobile01" and row[4] in ["手機","筆電","電腦","蘋果"]) or (row[3] == "鉅亨網" and row[4] not in ["海外房產"]):
+							# print(row[3])
+							# print(row[4])
+							total_data[get_date(row[5])].append(row[11])
 	filename = "./total_dataset.p"
 	fread = open(filename, "wb")
 	pickle.dump(total_data, fread)
@@ -49,6 +58,11 @@ def get_date(date_time):
 
 #————————————————————————Main Functions——————————————————————————
 get_news_dataset()
+# temp_data = load_news_data()
+# for date in temp_data:
+# 	print(date)
+# 	print(temp_data[date])
+
 # stock_data = stock.load_stock_data("asus")
 # for key in stock_data:
 # 	print(key)
