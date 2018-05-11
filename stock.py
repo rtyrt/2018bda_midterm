@@ -24,16 +24,6 @@ def get_stock_data(name,table):
     fread.close()
     return stock
 
-#input:(name,table)=(stock name string, excel sheet)
-#output:dictionary in the form of{date time:price}
-#
-def load_stock_data(name):
-    stock={}
-    filename = "./stock_data_"+name.split(" ")[0]+".p"
-    fileObject = open(filename,'rb')
-    stock = pickle.load(fileObject)
-    return stock
-
 #input:(name)=dictionary in the form of{date time:price}
 #output: a list of daily_return
 #
@@ -76,37 +66,47 @@ def assign_return_value(return_list,name):
         
     return name
 
+#input:(name,table)=(stock name string, excel sheet)
+#output:dictionary in the form of{date time:price}
+#
+def load_stock_data(name):
+    stock={}
+    filename = "./data_"+name+".p"
+    fileObject = open(filename,'rb')
+    stock = pickle.load(fileObject)
+    return stock
+
 
 #--------------------Main Code------------------------------------
 
 #load excel file 2016 stock 
-wb = load_workbook(filename=r'2016_stock_data.xlsx')
-ws = wb.worksheets[0]
-table_row=ws.rows
+# wb = load_workbook(filename=r'2016_stock_data.xlsx')
+# ws = wb.worksheets[0]
+# table_row=ws.rows
 
 
-#filter out targeted stock info
-asus=get_stock_data("2357 華碩",table_row)
-asus=load_stock_data("2357 華碩")
+# #filter out targeted stock info
+# asus=get_stock_data("2357 華碩",table_row)
+# asus=load_stock_data("2357 華碩")
 
-acer=get_stock_data("2353 宏碁",table_row)
-acer=load_stock_data("2353 宏碁")
+# acer=get_stock_data("2353 宏碁",table_row)
+# acer=load_stock_data("2353 宏碁")
 
-#calculate return for each stock
-stock_asus_return=get_return(asus)
-stock_acer_return=get_return(acer)
+# #calculate return for each stock
+# stock_asus_return=get_return(asus)
+# stock_acer_return=get_return(acer)
 
-#assign value 1/0/-1 to daily return
-stock_asus=assign_return_value(stock_asus_return,asus)
-stock_acer=assign_return_value(stock_acer_return,acer)
+# #assign value 1/0/-1 to daily return
+# stock_asus=assign_return_value(stock_asus_return,asus)
+# stock_acer=assign_return_value(stock_acer_return,acer)
 
-#save as pickle file
-filename = "./data_asus.p"
-fread = open(filename, "wb")
-pickle.dump(stock_asus, fread)
-fread.close()
+# #save as pickle file
+# filename = "./data_asus.p"
+# fread = open(filename, "wb")
+# pickle.dump(stock_asus, fread)
+# fread.close()
 
-filename = "./data_acer.p"
-fread = open(filename, "wb")
-pickle.dump(stock_acer, fread)
-fread.close()
+# filename = "./data_acer.p"
+# fread = open(filename, "wb")
+# pickle.dump(stock_acer, fread)
+# fread.close()
