@@ -5,38 +5,34 @@ import csv
 #————————————————————————Functions——————————————————————————
 
 def get_news_dataset():
-	filename = ["2016_forum_new.csv", "2016_bbs_new.csv", "2016_news_new.csv", "2017_social_new.csv"]
-	total_data = []
+	filename = ["2016_forum.csv", "2016_bbs.csv", "2016_news.csv", "2017_social.csv"]
+	total_data = {}
 	for each_filename in filename:
-		with open(each_filename, 'r', encoding='utf-8', newline='' ) as f:
+		with open(each_filename, 'r') as f:
 			f_csv = csv.reader(f)
 			for row in f_csv:
-				temp_array = {}
 				if row[11] != "content":
-					if each_filename == "2016_news_new.csv":
+					if each_filename == "2016_news.csv":
 						if row[4] not in []:
-							temp_array["date"] = get_date(row[5])
-							temp_array["content"] = row[11]
-							total_data.append(temp_array)
+							total_data[get_date(row[5])].append(row[11])
 					else:
-						temp_array["date"] = get_date(row[5])
-						temp_array["content"] = row[11]
-						total_data.append(temp_array)
+						total_data[get_date(row[5])].append(row[11])
 
+				# print(row)
 	filename = "./total_dataset.p"
 	fread = open(filename, "wb")
-	pickle.dump(stock, fread)
+	pickle.dump(total_data, fread)
 	fread.close()
 
 # load news dataset
-# 	input:	name, the filename of the data
 # 	output:	dictionary file of such file
+# 		total_data["2016-09-09"]=["first news","second news","third news",....]
 def load_news_data():
-	stock={}
+	total_data={}
 	filename = "./total_dataset.p"
 	fileObject = open(filename,'rb')
-	stock = pickle.load(fileObject)
-	return stock
+	total_data = pickle.load(fileObject)
+	return total_data
 
 # get date string in following format, 2016-09-01
 def get_date(date_time):
@@ -55,4 +51,4 @@ def add_zero(time):
 
 
 #————————————————————————Main Functions——————————————————————————
-# get_news_dataset()
+get_news_dataset()
