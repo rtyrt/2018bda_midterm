@@ -14,7 +14,8 @@ import stock as stock
 # 		news_dataset["2016-09-01"]=["news01", "news02", "...", ......]
 # 	output:
 # 		keyword_array, an array with each dataset's keywords
-def get_news_keyword(total_news_dataset, input_firm):
+def get_news_keyword(total_news_dataset, input_firm, total_keyword_num):
+	print("length of total_news_dataset: ",len(total_news_dataset))
 	rising_news = []
 	falling_news = []
 	rising_news_keyword = []
@@ -25,15 +26,14 @@ def get_news_keyword(total_news_dataset, input_firm):
 		current_date = get_date(key)
 		# current_date = key
 		two_days_ago = compute_date(current_date,2)
-		print(stock_data[key])
-		if total_news_dataset.__contains__(two_days_ago) == 1:
+		if total_news_dataset.__contains__(two_days_ago) == 1 and len(stock_data[key]) == 2:
 			if stock_data[key][1] == 1:
 				rising_news.extend(total_news_dataset[two_days_ago])
 				
 			elif stock_data[key][1] == 0:
 				falling_news.extend(total_news_dataset[two_days_ago])
-	rising_news_keyword = get_type_news_keyword(rising_news)
-	falling_news_keyword = get_type_news_keyword(falling_news)
+	rising_news_keyword = get_type_news_keyword(rising_news, total_keyword_num)
+	falling_news_keyword = get_type_news_keyword(falling_news, total_keyword_num)
 	total_keywords = list(set(rising_news_keyword + falling_news_keyword))
 
 	print("length of rising_news_keyword: ",len(rising_news_keyword))
@@ -47,37 +47,35 @@ def get_news_keyword(total_news_dataset, input_firm):
 # 		news_dataset["2016-09-01"]=["news01", "news02", "...", ......]
 # 	output:
 # 		keyword_array, an array with each dataset's keywords
-def get_type_news_keyword(news_dataset):
-	pass
-
-
-def get_ngram_tupples(content):
+def get_type_news_keyword(news_dataset, total_keyword_num):
 	grams_tupples = {}
 	grams = {}
 	df_tupples = []
 	tf_tupples = []
+	final_keyword = []
 
 	count = 1
-	print(len(content))
-	for news in content:
-		print(news)
+	# print(len(news_dataset))
+	# news_dataset=["我知道","今天是"]
+	# for news in news_dataset:
+	for news in range(0,len(news_dataset)):
 		grams_tupples[news] = []
 		temp_tf_tupples = []
 
 		# Get the terms with tf and df
-		for n in range(2,7):
-			grams = ngrams(content[news]["content"], n)
+		for n in range(2,5):
+			grams = ngrams(news_dataset[news], n)
 			check_status = 1
 			for tupples in grams:
 				for word in tupples:
-					if word.isdigit() or isEnglish(word) or word in "[+——！：；，。？「」、~@#￥%……&*（）]+":
+					if word.isdigit() or isEnglish(word) or word in "[+——！：；，。？「」、~@#￥%……&*（）／]+":
 						check_status = 0
 				if(check_status):
 					grams_tupples[news].append(tupples)
 					temp_tf_tupples.append(tupples)
 					df_tupples.append(tupples)
 				check_status = 1
-		
+
 		# df means to collect the set of each terms in one news
 		for tmp_tupples in set(temp_tf_tupples):
 			tf_tupples.append(tmp_tupples)
@@ -95,14 +93,14 @@ def get_ngram_tupples(content):
 				temp_tf_tupples_cleaner += [collect[0] for i in range(0,collect[1])]
 			df_tupples = temp_df_tupples_cleaner
 			tf_tupples = temp_tf_tupples_cleaner
-			# for collect in temp_df_counter.most_common()[:-5001:-1]:
-			# 	df_tupples = [tupple for tupple in df_tupples if not collect[0]]
-			# 	tf_tupples = [tupple for tupple in tf_tupples if not collect[0]]
+			for collect in temp_df_counter.most_common()[:-5001:-1]:
+				df_tupples = [tupple for tupple in df_tupples if not collect[0]]
+				tf_tupples = [tupple for tupple in tf_tupples if not collect[0]]
 		
 		# Count for times it runs
 		count += 1
-		# if count == 50: 
-		# 	break
+		if count == 50: 
+			break
 
 	# Select terms at the end, same thing as above "Select terms every 5000 news", better to make it into a function
 	temp_df_counter = collections.Counter(df_tupples)
@@ -125,13 +123,8 @@ def get_ngram_tupples(content):
 
 	# Write into xls file
 	merge_subterm(df_counter,tf_counter)
-	write_into_xls(df_counter,tf_counter,count-1)
-
-def concat(term):
-	concatterm=''
-	for i in term:
-		concatterm+=i
-	return concatterm
+	final_keyword = get_final_key_word(df_counter,tf_counter,total_keyword_num)
+	return final_keyword
 
 def merge_subterm(df_counter,tf_counter):
 	ngram_term=[[],[],[],[],[]]
@@ -152,31 +145,33 @@ def merge_subterm(df_counter,tf_counter):
 			if ckeck:
 				df_counter.pop(subterm)
 				tf_counter.pop(subterm)
+def concat(term):
+	concatterm=''
+	for i in term:
+		concatterm+=i
+	return concatterm
 
+def get_final_key_word(df_counter,tf_counter,keyword_num):
 
-def write_into_xls(df_counter,tf_counter,count):
-
-	wb = Workbook()
-	new_ws = wb.create_sheet(title='bank')
-	new_ws.cell(row=1, column=1).value = count
-	new_ws.cell(row=1, column=2).value = "doc_num"
-	new_ws.cell(row=2, column=1).value = "term"
-	new_ws.cell(row=2, column=2).value = "tf"
-	new_ws.cell(row=2, column=3).value = "df"
-	new_ws.cell(row=2, column=4).value = "tf-idf"
-
-	row = 3
+	total_keyword_array = {}
+	final_keyword_array = []
 	for terms in df_counter:
 		# print(terms)
 		# print(tf_counter[terms])
 		# print(array_merge(terms))
-		new_ws.cell(row=row, column=1).value = array_merge(terms)
-		new_ws.cell(row=row, column=2).value = tf_counter[terms]
-		new_ws.cell(row=row, column=3).value = df_counter[terms]
-		new_ws.cell(row=row, column=4).value = (1+math.log10(tf_counter[terms])) * math.log10(count/df_counter[terms])
+		total_keyword_array[array_merge(terms)] = (1+math.log10(tf_counter[terms])) * math.log10(count/df_counter[terms])
 
-		row += 1
-	wb.save(filename='bda_hw01_group.xlsx')
+	for index in range(0,keyword_num):
+		temp_max_key_word = max(stats.items(), key=operator.itemgetter(1))[0]
+		final_keyword_array.append(temp_max_key_word)
+		 del total_keyword_array[temp_max_key_word]
+
+	filename = "./total_keyword.p"
+	fread = open(filename, "wb")
+	pickle.dump(total_keyword_array, fread)
+	fread.close()
+
+	return final_keyword_array
 
 def isEnglish(s):
     try:
@@ -191,6 +186,15 @@ def array_merge(terms):
 	for text in terms:
 		result += text
 	return result
+
+# load news keyword
+# 	output:	an array with each dataset's keywords
+def load_news_keyword():
+	total_data={}
+	filename = "./total_keyword.p"
+	fileObject = open(filename,'rb')
+	total_data = pickle.load(fileObject)
+	return total_data
 
 # get date string in following format, 2016-09-01
 def get_date(date_time):
