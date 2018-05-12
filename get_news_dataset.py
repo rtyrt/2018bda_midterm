@@ -57,13 +57,8 @@ def get_date(date_time):
 
 
 #————————————————————————Main Functions——————————————————————————
-get_news_dataset()
+# get_news_dataset()
 # temp_data = load_news_data()
 # for date in temp_data:
 # 	print(date)
 # 	print(temp_data[date])
-
-# stock_data = stock.load_stock_data("asus")
-# for key in stock_data:
-# 	print(key)
-# 	print(stock_data[key][1])
