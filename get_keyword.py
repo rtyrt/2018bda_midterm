@@ -2,6 +2,8 @@ import re
 import string
 import collections
 import math
+import operator
+import pickle
 from nltk import ngrams
 from datetime import datetime, timedelta
 import stock as stock
@@ -22,15 +24,15 @@ def get_news_keyword(total_news_dataset, input_firm, total_keyword_num):
 	falling_news_keyword = []
 	total_keywords = []
 	stock_data = stock.load_stock_data(input_firm)
+	# print(stock_data)
 	for key in stock_data:
-		current_date = get_date(key)
-		# current_date = key
+		current_date = key
 		two_days_ago = compute_date(current_date,2)
-		if total_news_dataset.__contains__(two_days_ago) == 1 and len(stock_data[key]) == 2:
-			if stock_data[key][1] == 1:
+		if total_news_dataset.__contains__(two_days_ago) == 1 and len(stock_data[current_date]) == 2:
+			if stock_data[current_date][1] == 1:
 				rising_news.extend(total_news_dataset[two_days_ago])
 				
-			elif stock_data[key][1] == 0:
+			elif stock_data[current_date][1] == 0:
 				falling_news.extend(total_news_dataset[two_days_ago])
 	rising_news_keyword = get_type_news_keyword(rising_news, total_keyword_num)
 	falling_news_keyword = get_type_news_keyword(falling_news, total_keyword_num)
@@ -55,8 +57,7 @@ def get_type_news_keyword(news_dataset, total_keyword_num):
 	final_keyword = []
 
 	count = 1
-	# print(len(news_dataset))
-	# news_dataset=["我知道","今天是"]
+	print(len(news_dataset))
 	# for news in news_dataset:
 	for news in range(0,len(news_dataset)):
 		grams_tupples[news] = []
@@ -81,7 +82,8 @@ def get_type_news_keyword(news_dataset, total_keyword_num):
 			tf_tupples.append(tmp_tupples)
 
 		# Select terms every 5000 news
-		if count%5000 == 0:
+		if count%50000 == 0:
+			print(count)
 			temp_df_counter = collections.Counter(df_tupples)
 			temp_tf_counter = collections.Counter(tf_tupples)
 			print("temp_df_counter"+str(len(temp_df_counter)))
@@ -99,8 +101,8 @@ def get_type_news_keyword(news_dataset, total_keyword_num):
 		
 		# Count for times it runs
 		count += 1
-		if count == 50: 
-			break
+		# if count == 50: 
+		# 	break
 
 	# Select terms at the end, same thing as above "Select terms every 5000 news", better to make it into a function
 	temp_df_counter = collections.Counter(df_tupples)
@@ -118,12 +120,12 @@ def get_type_news_keyword(news_dataset, total_keyword_num):
 	# Print out the most common terms
 	df_counter = collections.Counter(df_tupples)
 	tf_counter = collections.Counter(tf_tupples)
-	print(df_counter.most_common(20))
-	print(tf_counter.most_common(20))
+	# print(df_counter.most_common(20))
+	# print(tf_counter.most_common(20))
 
 	# Write into xls file
 	merge_subterm(df_counter,tf_counter)
-	final_keyword = get_final_key_word(df_counter,tf_counter,total_keyword_num)
+	final_keyword = get_final_key_word(df_counter,tf_counter,count-1,total_keyword_num)
 	return final_keyword
 
 def merge_subterm(df_counter,tf_counter):
@@ -151,7 +153,7 @@ def concat(term):
 		concatterm+=i
 	return concatterm
 
-def get_final_key_word(df_counter,tf_counter,keyword_num):
+def get_final_key_word(df_counter,tf_counter,count,keyword_num):
 
 	total_keyword_array = {}
 	final_keyword_array = []
@@ -162,9 +164,10 @@ def get_final_key_word(df_counter,tf_counter,keyword_num):
 		total_keyword_array[array_merge(terms)] = (1+math.log10(tf_counter[terms])) * math.log10(count/df_counter[terms])
 
 	for index in range(0,keyword_num):
-		temp_max_key_word = max(stats.items(), key=operator.itemgetter(1))[0]
+		temp_max_key_word = ""
+		temp_max_key_word = max(total_keyword_array.items(), key=operator.itemgetter(1))[0]
 		final_keyword_array.append(temp_max_key_word)
-		 del total_keyword_array[temp_max_key_word]
+		del total_keyword_array[temp_max_key_word]
 
 	filename = "./total_keyword.p"
 	fread = open(filename, "wb")

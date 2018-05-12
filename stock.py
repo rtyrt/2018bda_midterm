@@ -15,7 +15,7 @@ def get_stock_data(name,table):
     stock={}
     for row in table:
         if (row[0].value==name):
-            change_date_format=row[1].value.strftime('%Y/%m/%d')
+            change_date_format=row[1].value.strftime('%Y-%m-%d')
             stock[change_date_format]=[]
             stock[change_date_format].append(row[2].value)
 
@@ -72,6 +72,7 @@ def assign_return_value(return_list,name):
 #
 def load_stock_data(name):
     stock={}
+    # filename = "./stock_data_"+name.split(" ")[0]+".p"
     filename = "./data_"+name+".p"
     fileObject = open(filename,'rb')
     stock = pickle.load(fileObject)
@@ -80,7 +81,7 @@ def load_stock_data(name):
 
 #--------------------Main Code------------------------------------
 
-#load excel file 2016 stock 
+# #load excel file 2016 stock 
 # wb = load_workbook(filename=r'2016_stock_data.xlsx')
 # ws = wb.worksheets[0]
 # table_row=ws.rows
@@ -88,9 +89,11 @@ def load_stock_data(name):
 
 # #filter out targeted stock info
 # asus=get_stock_data("2357 華碩",table_row)
+# # asus=load_stock_data("asus")
 # asus=load_stock_data("2357 華碩")
 
 # acer=get_stock_data("2353 宏碁",table_row)
+# # asus=load_stock_data("acer")
 # acer=load_stock_data("2353 宏碁")
 
 # #calculate return for each stock

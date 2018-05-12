@@ -10,14 +10,16 @@ import get_keyword as keyword
 
 # --------------- Main code ---------------
 
-# 
+# Input variables
 input_firm = "asus"
+total_keyword_num = 166
 
 # Load total news dataset
 total_news_dataset = news_dataset.load_news_data()
 
 # Get keywords of both rising and falling news
-news_keyword = keyword.get_news_keyword(total_news_dataset,input_firm)
+news_keyword = keyword.get_news_keyword(total_news_dataset,input_firm,total_keyword_num)
+print(news_keyword)
 
 # Use RandomForest predict the new news
 
