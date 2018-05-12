@@ -5,7 +5,7 @@ import string
 import collections
 import math
 import pickle
-
+from datetime import datetime
 #————————————————————————FUNCTIONS——————————————————————————
 
 #input:(name,table)=(stock name string, excel sheet)
@@ -15,8 +15,9 @@ def get_stock_data(name,table):
     stock={}
     for row in table:
         if (row[0].value==name):
-            stock[row[1].value]=[]
-            stock[row[1].value].append(row[2].value)
+            change_date_format=row[1].value.strftime('%Y/%m/%d')
+            stock[change_date_format]=[]
+            stock[change_date_format].append(row[2].value)
 
     filename = "./stock_data_"+name.split(" ")[0]+".p"
     fread = open(filename, "wb")
