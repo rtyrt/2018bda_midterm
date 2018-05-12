@@ -34,13 +34,17 @@ def get_news_keyword(total_news_dataset, input_firm, total_keyword_num):
 				
 			elif stock_data[current_date][1] == 0:
 				falling_news.extend(total_news_dataset[two_days_ago])
-	rising_news_keyword = get_type_news_keyword(rising_news, total_keyword_num)
-	falling_news_keyword = get_type_news_keyword(falling_news, total_keyword_num)
+	rising_news_keyword = get_type_news_keyword(rising_news, total_keyword_num, "rising")
+	falling_news_keyword = get_type_news_keyword(falling_news, total_keyword_num, "falling")
 	total_keywords = list(set(rising_news_keyword + falling_news_keyword))
 
 	print("length of rising_news_keyword: ",len(rising_news_keyword))
 	print("length of falling_news_keyword: ",len(falling_news_keyword))
 	print("length of total_keywords: ",len(total_keywords))
+	filename = "./total_keyword.p"
+	fread = open(filename, "wb")
+	pickle.dump(total_keywords, fread)
+	fread.close()
 	return total_keywords
 
 # Given news, find out the keywords for them
@@ -49,7 +53,7 @@ def get_news_keyword(total_news_dataset, input_firm, total_keyword_num):
 # 		news_dataset["2016-09-01"]=["news01", "news02", "...", ......]
 # 	output:
 # 		keyword_array, an array with each dataset's keywords
-def get_type_news_keyword(news_dataset, total_keyword_num):
+def get_type_news_keyword(news_dataset, total_keyword_num, keyword_type):
 	grams_tupples = {}
 	grams = {}
 	df_tupples = []
@@ -82,8 +86,8 @@ def get_type_news_keyword(news_dataset, total_keyword_num):
 			tf_tupples.append(tmp_tupples)
 
 		# Select terms every 5000 news
-		if count%50000 == 0:
-			print(count)
+		if count%5000 == 0:
+			print("Start cleaning: ",count)
 			temp_df_counter = collections.Counter(df_tupples)
 			temp_tf_counter = collections.Counter(tf_tupples)
 			print("temp_df_counter"+str(len(temp_df_counter)))
@@ -95,9 +99,10 @@ def get_type_news_keyword(news_dataset, total_keyword_num):
 				temp_tf_tupples_cleaner += [collect[0] for i in range(0,collect[1])]
 			df_tupples = temp_df_tupples_cleaner
 			tf_tupples = temp_tf_tupples_cleaner
-			for collect in temp_df_counter.most_common()[:-5001:-1]:
-				df_tupples = [tupple for tupple in df_tupples if not collect[0]]
-				tf_tupples = [tupple for tupple in tf_tupples if not collect[0]]
+			print("Finish cleaning")
+			# for collect in temp_df_counter.most_common()[:-5001:-1]:
+			# 	df_tupples = [tupple for tupple in df_tupples if not collect[0]]
+			# 	tf_tupples = [tupple for tupple in tf_tupples if not collect[0]]
 		
 		# Count for times it runs
 		count += 1
@@ -125,7 +130,7 @@ def get_type_news_keyword(news_dataset, total_keyword_num):
 
 	# Write into xls file
 	merge_subterm(df_counter,tf_counter)
-	final_keyword = get_final_key_word(df_counter,tf_counter,count-1,total_keyword_num)
+	final_keyword = get_final_key_word(df_counter,tf_counter,count-1,total_keyword_num,keyword_type)
 	return final_keyword
 
 def merge_subterm(df_counter,tf_counter):
@@ -153,7 +158,7 @@ def concat(term):
 		concatterm+=i
 	return concatterm
 
-def get_final_key_word(df_counter,tf_counter,count,keyword_num):
+def get_final_key_word(df_counter,tf_counter,count,keyword_num, keyword_type):
 
 	total_keyword_array = {}
 	final_keyword_array = []
@@ -169,9 +174,9 @@ def get_final_key_word(df_counter,tf_counter,count,keyword_num):
 		final_keyword_array.append(temp_max_key_word)
 		del total_keyword_array[temp_max_key_word]
 
-	filename = "./total_keyword.p"
+	filename = "./"+keyword_type+"_keyword.p"
 	fread = open(filename, "wb")
-	pickle.dump(total_keyword_array, fread)
+	pickle.dump(final_keyword_array, fread)
 	fread.close()
 
 	return final_keyword_array

@@ -1,6 +1,7 @@
 import get_news_dataset as news_dataset
 import stock as stock
 import get_keyword as keyword
+import pickle
 
 # ---------------- Functions ----------------
 
@@ -28,7 +29,11 @@ print(news_keyword)
 
 # Use the result of RandomForest's prediction to conclude whether the day will rise or fall
 
-
+# total_data={}
+# filename = "./falling_keyword.p"
+# fileObject = open(filename,'rb')
+# total_data = pickle.load(fileObject)
+# print(total_data)
 
 
 # -----------------------------------------

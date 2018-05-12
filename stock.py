@@ -11,11 +11,16 @@ from datetime import datetime
 #input:(name,table)=(stock name string, excel sheet)
 #output:dictionary in the form of{date time:price}
 #
-def get_stock_data(name,table):
+def get_stock_data(name,table_2016,table_2017):
     stock={}
-    for row in table:
+    for row in table_2016:
         if (row[0].value==name):
             change_date_format=row[1].value.strftime('%Y-%m-%d')
+            stock[change_date_format]=[]
+            stock[change_date_format].append(row[2].value)
+    for row in table_2017:
+        if (row[0].value==name):
+            change_date_format=row[1].value.replace("/","-")
             stock[change_date_format]=[]
             stock[change_date_format].append(row[2].value)
 
@@ -86,13 +91,18 @@ def load_stock_data(name):
 # ws = wb.worksheets[0]
 # table_row=ws.rows
 
+# #load excel file 2017 stock 
+# wb_2017 = load_workbook(filename=r'2017_stock_data.xlsx')
+# ws_2017 = wb_2017.worksheets[0]
+# table_row_2017=ws_2017.rows
+
 
 # #filter out targeted stock info
-# asus=get_stock_data("2357 華碩",table_row)
+# asus=get_stock_data("2357 華碩",table_row,table_row_2017)
 # # asus=load_stock_data("asus")
 # asus=load_stock_data("2357 華碩")
 
-# acer=get_stock_data("2353 宏碁",table_row)
+# acer=get_stock_data("2353 宏碁",table_row,table_row_2017)
 # # asus=load_stock_data("acer")
 # acer=load_stock_data("2353 宏碁")
 
