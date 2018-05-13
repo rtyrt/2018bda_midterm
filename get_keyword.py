@@ -6,7 +6,6 @@ import operator
 import pickle
 from nltk import ngrams
 from datetime import datetime, timedelta
-import stock as stock
 
 # ---------------- Functions ----------------
 
@@ -16,19 +15,18 @@ import stock as stock
 # 		news_dataset["2016-09-01"]=["news01", "news02", "...", ......]
 # 	output:
 # 		keyword_array, an array with each dataset's keywords
-def get_news_keyword(total_news_dataset, input_firm, total_keyword_num):
+def get_news_keyword(total_news_dataset, stock_data, input_firm, total_keyword_num):
 	print("length of total_news_dataset: ",len(total_news_dataset))
 	rising_news = []
 	falling_news = []
 	rising_news_keyword = []
 	falling_news_keyword = []
 	total_keywords = []
-	stock_data = stock.load_stock_data(input_firm)
-	# print(stock_data)
 	for key in stock_data:
 		current_date = key
 		two_days_ago = compute_date(current_date,2)
 		if total_news_dataset.__contains__(two_days_ago) == 1 and len(stock_data[current_date]) == 2:
+			print(current_date)
 			if stock_data[current_date][1] == 1:
 				rising_news.extend(total_news_dataset[two_days_ago])
 				

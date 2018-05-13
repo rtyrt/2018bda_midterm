@@ -75,9 +75,18 @@ def assign_return_value(return_list,name):
 #input:(name,table)=(stock name string, excel sheet)
 #output:dictionary in the form of{date time:price}
 #
+def load_origin_stock_data(name):
+    stock={}
+    filename = "./stock_data_"+name.split(" ")[0]+".p"
+    fileObject = open(filename,'rb')
+    stock = pickle.load(fileObject)
+    return stock
+
+#input:(name,table)=(stock name string, excel sheet)
+#output:dictionary in the form of{date time:price}
+#
 def load_stock_data(name):
     stock={}
-    # filename = "./stock_data_"+name.split(" ")[0]+".p"
     filename = "./data_"+name+".p"
     fileObject = open(filename,'rb')
     stock = pickle.load(fileObject)
@@ -99,12 +108,10 @@ def load_stock_data(name):
 
 # #filter out targeted stock info
 # asus=get_stock_data("2357 華碩",table_row,table_row_2017)
-# # asus=load_stock_data("asus")
-# asus=load_stock_data("2357 華碩")
+# asus=load_origin_stock_data("2357 華碩")
 
 # acer=get_stock_data("2353 宏碁",table_row,table_row_2017)
-# # asus=load_stock_data("acer")
-# acer=load_stock_data("2353 宏碁")
+# acer=load_origin_stock_data("2353 宏碁")
 
 # #calculate return for each stock
 # stock_asus_return=get_return(asus)

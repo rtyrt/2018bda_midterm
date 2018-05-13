@@ -15,14 +15,16 @@ import pickle
 input_firm = "asus"
 total_keyword_num = 166
 
-# Load total news dataset
+# Load total news and stock dataset
 total_news_dataset = news_dataset.load_news_data()
+stock_data = stock.load_stock_data(input_firm)
 
 # Get keywords of both rising and falling news
-news_keyword = keyword.get_news_keyword(total_news_dataset,input_firm,total_keyword_num)
+news_keyword = keyword.get_news_keyword(total_news_dataset,stock_data,input_firm,total_keyword_num)
 print(news_keyword)
 
 # Use RandomForest predict the new news
+predict_result = predict_by_randomforest(total_news_dataset,stock_data,news_keyword)
 
 # Get the input_firm's keyword
 # firm_keyword = keyword.get_firm_keyword(total_news_dataset,input_firm)
