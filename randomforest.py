@@ -11,9 +11,21 @@ def predict_by_randomforest(total_news_dataset,stock_data,news_keyword):
 
 	# 建立x, y軸所需的資料
 	# news_X = pd.DataFrame([news_train["Pclass"],news_train["Age"]]).T
-	news_x = news_train.drop('id','date','stock'], axis=1)
-	news_y = news_train["stock"]
-	train_x, test_x, train_y, test_y = cross_validation.train_test_split(news_x, news_y, test_size = 0.3)
+	# news_x = news_train.drop('id','date','stock'], axis=1).T
+	# news_y = news_train["stock"]
+	# train_x, test_x, train_y, test_y = cross_validation.train_test_split(news_x, news_y, test_size = 0.3)
+
+	# Use date to randomly split the training dataset
+	date_index = set(news_train["date"])
+	train_date, test_date = cross_validation.train_test_split(date_index, test_size = 0.3)
+	train_filter = news_train["date"] is train_date
+
+	train_index = news_train[train_filter]
+	test_index = news_train[-train_filter]
+	train_x = train_index.drop('id','date','stock'], axis=1).T
+	test_x = train_index["stock"]
+	train_y = test_index.drop('id','date','stock'], axis=1).T
+	test_x = test_index["stock"]
 
 	# 建立 random forest 模型
 	forest = ensemble.RandomForestClassifier(n_estimators = 5)
@@ -125,15 +137,3 @@ def compute_date_after(date,n):
 	return datetime.strftime(temp_date_time,"%Y-%m-%d")
 
 #--------------------------------------------
-
-
-# --------------- Main code ---------------
-
-
-
-
-
-
-
-
-# -----------------------------------------

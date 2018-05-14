@@ -4,6 +4,7 @@ import collections
 import math
 import operator
 import pickle
+import jieba
 from nltk import ngrams
 from datetime import datetime, timedelta
 
@@ -26,13 +27,16 @@ def get_news_keyword(total_news_dataset, stock_data, input_firm, total_keyword_n
 		current_date = key
 		two_days_ago = compute_date(current_date,2)
 		if total_news_dataset.__contains__(two_days_ago) == 1 and len(stock_data[current_date]) == 2:
-			print(current_date)
 			if stock_data[current_date][1] == 1:
 				rising_news.extend(total_news_dataset[two_days_ago])
 				
 			elif stock_data[current_date][1] == 0:
 				falling_news.extend(total_news_dataset[two_days_ago])
 	rising_news_keyword = get_type_news_keyword(rising_news, total_keyword_num, "rising")
+
+	# rising_keyword_filename = "./rising_keyword.p"
+	# rising_keyword_fileObject = open(rising_keyword_filename,'rb')
+	# rising_news_keyword = pickle.load(rising_keyword_fileObject)
 	falling_news_keyword = get_type_news_keyword(falling_news, total_keyword_num, "falling")
 	total_keywords = list(set(rising_news_keyword + falling_news_keyword))
 
@@ -65,36 +69,47 @@ def get_type_news_keyword(news_dataset, total_keyword_num, keyword_type):
 		grams_tupples[news] = []
 		temp_tf_tupples = []
 
+		news_dataset[news] = re.sub("[A-Za-z0-9\[\`\~\。\，\「\」\！\：\!\@\#\$\^\&\*\(\)\=\|\{\}\'\:\;\'\,\[\]\.\<\>\/\?\~\！\@\#\\\&\*\%]", "", news_dataset[news])
+		grams = jieba.cut(news_dataset[news], cut_all=False)
+		for tupples in grams:
+			if len(tupples) > 1 and len(tupples) <= 4:
+				grams_tupples[news].append(tupples)
+				temp_tf_tupples.append(tupples)
+				df_tupples.append(tupples)
+
 		# Get the terms with tf and df
-		for n in range(2,5):
-			grams = ngrams(news_dataset[news], n)
-			check_status = 1
-			for tupples in grams:
-				for word in tupples:
-					if word.isdigit() or isEnglish(word) or word in "[+——！：；，。？「」、~@#￥%……&*（）／]+":
-						check_status = 0
-				if(check_status):
-					grams_tupples[news].append(tupples)
-					temp_tf_tupples.append(tupples)
-					df_tupples.append(tupples)
-				check_status = 1
+		# for n in range(2,5):
+		# 	grams = ngrams(news_dataset[news], n)
+		# 	check_status = 1
+		# 	for tupples in grams:
+		# 		for word in tupples:
+		# 			if word.isdigit() or isEnglish(word) or word in "[+——！：；，。？<>「」、~@#￥%……&*（）／]+":
+		# 				check_status = 0
+		# 		if(check_status):
+		# 			grams_tupples[news].append(tupples)
+		# 			temp_tf_tupples.append(tupples)
+		# 			df_tupples.append(tupples)
+		# 		check_status = 1
+				
 
 		# df means to collect the set of each terms in one news
 		for tmp_tupples in set(temp_tf_tupples):
 			tf_tupples.append(tmp_tupples)
 
 		# Select terms every 5000 news
-		if count%5000 == 0:
+		if count%500 == 0:
 			print("Start cleaning: ",count)
 			temp_df_counter = collections.Counter(df_tupples)
 			temp_tf_counter = collections.Counter(tf_tupples)
-			print("temp_df_counter"+str(len(temp_df_counter)))
-			print("temp_tf_counter"+str(len(temp_tf_counter)))
+			# print("temp_df_counter"+str(len(temp_df_counter)))
+			# print("temp_tf_counter"+str(len(temp_tf_counter)))
 			temp_df_tupples_cleaner = []
 			temp_tf_tupples_cleaner = []
 			for collect in temp_tf_counter.most_common(1000):
 				temp_df_tupples_cleaner += [collect[0] for i in range(0,temp_df_counter[collect[0]])]
 				temp_tf_tupples_cleaner += [collect[0] for i in range(0,collect[1])]
+			df_tupples = []
+			tf_tupples = []
 			df_tupples = temp_df_tupples_cleaner
 			tf_tupples = temp_tf_tupples_cleaner
 			print("Finish cleaning")
@@ -123,8 +138,6 @@ def get_type_news_keyword(news_dataset, total_keyword_num, keyword_type):
 	# Print out the most common terms
 	df_counter = collections.Counter(df_tupples)
 	tf_counter = collections.Counter(tf_tupples)
-	# print(df_counter.most_common(20))
-	# print(tf_counter.most_common(20))
 
 	# Write into xls file
 	merge_subterm(df_counter,tf_counter)
@@ -213,11 +226,3 @@ def compute_date(date,n):
 	return datetime.strftime(temp_date_time,"%Y-%m-%d")
 
 #--------------------------------------------
-
-
-# --------------- Main code ---------------
-# print("Get ngram tupples")
-# get_ngram_tupples(content)
-
-
-# -----------------------------------------
