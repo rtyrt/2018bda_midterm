@@ -2,12 +2,15 @@ import numpy as np
 import pandas as pd
 from sklearn import cross_validation, ensemble, preprocessing, metrics
 import pickle
+import math
+from datetime import datetime, timedelta
 
 # ---------------- Functions ----------------
 def predict_by_randomforest(total_news_dataset,stock_data,news_keyword):
 	
 	# 
 	news_train = get_dataframe(total_news_dataset,stock_data,news_keyword)
+	# news_train = pd.read_pickle("svm.p")
 
 	# 建立x, y軸所需的資料
 	# news_X = pd.DataFrame([news_train["Pclass"],news_train["Age"]]).T
@@ -22,34 +25,40 @@ def predict_by_randomforest(total_news_dataset,stock_data,news_keyword):
 
 	train_index = news_train[train_filter]
 	test_index = news_train[-train_filter]
-	train_x = train_index.drop('id','date','stock'], axis=1).T
+	train_x = train_index.drop(['id','date','stock'], axis=1).T
 	test_x = train_index["stock"]
-	train_y = test_index.drop('id','date','stock'], axis=1).T
+	train_y = test_index.drop(['id','date','stock'], axis=1).T
 	test_x = test_index["stock"]
 
+	print(train_x)
+
 	# 建立 random forest 模型
-	forest = ensemble.RandomForestClassifier(n_estimators = 5)
-	forest_fit = forest.fit(train_x, train_y)
-	print(forest_fit)
+	# forest = ensemble.RandomForestClassifier(n_estimators = 5)
+	# forest_fit = forest.fit(train_x, train_y)
+	# print(forest_fit)
 
 	# 預測
-	test_y_predicted = forest.predict(test_x)
+	# test_y_predicted = forest.predict(test_x)
 
 	# 績效
-	accuracy = metrics.accuracy_score(test_y, test_y_predicted)
-	print(accuracy)
+	# accuracy = metrics.accuracy_score(test_y, test_y_predicted)
+	# print(accuracy)
 
 def get_dataframe(total_news_dataset,stock_data,news_keyword):
-	total_news = {}
+	total_news = []
 	news_counter = 1
 	for date in total_news_dataset:
 		current_date = date
 		two_days_after = compute_date_after(current_date,2)
-		for news_index in range(0,total_news_dataset[date]):
-			if stock_data.__contains__(two_days_after):
-				total_news[news_counter]["date"] = date
-				total_news[news_counter]["content"] = total_news_dataset[date][news_index]
-				total_news[news_counter]["stock"] = stock_data[two_days_after][1]
+		for news_index in range(0,len(total_news_dataset[date])):
+			if stock_data.__contains__(two_days_after) and len(stock_data[two_days_after]) == 2:
+				temp_news_array = {}
+				temp_news_array["id"] = news_counter
+				temp_news_array["date"] = date
+				temp_news_array["content"] = total_news_dataset[date][news_index]
+				temp_news_array["stock"] = stock_data[two_days_after][1]
+				total_news.append(temp_news_array)
+				news_counter += 1
 
 	# initiate
 	keyword_df = {}
@@ -72,7 +81,7 @@ def get_keyword_df(content,keyword):
 	for term in keyword:
 		keyword_df[term] = 0
 		for news in content:
-			if(term in content[news]["content"]):
+			if(term in news["content"]):
 				keyword_df[term] += 1
 	# print(keyword_df)
 	return keyword_df
@@ -89,23 +98,28 @@ def get_keyword_df(content,keyword):
 #		news_tfidf[1]["鴻海"]=0.0000444252
 def get_news_keyword_tfidf(content,keyword,keyword_df,N):
 	# news_dataframe = {}
+	print("Start get_news_keyword_tfidf")
 	news_dict = {}
 	news_dict["id"] = []
 	news_dict["date"] = []
+	news_dict["stock"] = []
 	for news in content:
 		# news_tfidf[news] = get_each_news_keyword_tfidf(content[news]["content"],keyword,keyword_df,N)
-		temp_tfidf = get_each_news_keyword_tfidf(content[news]["content"],keyword,keyword_df,N)
-		news_dict["id"].append(news)
-		news_dict["date"].append(content[news]["date"])
-		news_dict["stock"].append(content[news]["stock"])
+		temp_tfidf = get_each_news_keyword_tfidf(news["content"],keyword,keyword_df,N)
+		news_dict["id"].append(news["id"])
+		news_dict["date"].append(news["date"])
+		news_dict["stock"].append(news["stock"])
 		for temp_keyword in temp_tfidf:
-			if not temp_tfidf.__contains__(temp_keyword):
+			if not news_dict.__contains__(temp_keyword) or not temp_tfidf.__contains__(temp_keyword):
 				news_dict[temp_keyword] = []
-			else:
-				news_dict[temp_keyword].append(temp_tfidf[temp_keyword])
-
+			news_dict[temp_keyword].append(temp_tfidf[temp_keyword])
+		
 	# return dataframe of news_dict
+	print("Start turning into dataframe")
 	news_dataframe = pd.DataFrame(news_dict)
+
+	print("Start turning into pickle")
+	news_dataframe.to_pickle("svm.p")
 	return news_dataframe
 
 # Compute the tfidf of each keyword for the given news
@@ -122,8 +136,10 @@ def get_each_news_keyword_tfidf(content,keyword,keyword_df,N):
 			news_tfidf[term] = (1 + math.log10(keyword_tf)) * math.log10(N/keyword_df[term])
 			news_vector_length += news_tfidf[term] * news_tfidf[term]
 	for term in keyword:
-		normalized_tfidf[term] = news_tfidf[term] / math.sqrt(news_vector_length)
-	# print(normalized_tfidf)
+		if news_vector_length == 0:
+			normalized_tfidf[term] = 0
+		else:
+			normalized_tfidf[term] = news_tfidf[term] / math.sqrt(news_vector_length)
 	return normalized_tfidf
 
 # get date string in following format, 2016-09-01
