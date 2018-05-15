@@ -23,7 +23,7 @@ stock_data = stock.load_stock_data(input_firm)
 # Get keywords of both rising and falling news
 news_keyword = keyword.get_news_keyword(total_news_dataset,stock_data,input_firm,total_keyword_num)
 # news_keyword = keyword.load_news_keyword()
-# print(news_keyword)
+print(news_keyword)
 
 # Use RandomForest predict the new news
 # predict_result = randomforest.predict_by_randomforest(total_news_dataset,stock_data,news_keyword)
