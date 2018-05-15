@@ -69,6 +69,21 @@ def cosine(vec1,vec2):
 	else:
 		return cos/sum_vec1**0.5/sum_vec2**0.5
 
+def compute_inner_product(vector_x,vector_y):
+	pointer_x = 0
+	pointer_y = 0
+	inner_product = 0
+	while pointer_x < len(vector_x) and pointer_y < len(vector_y):
+		if vector_x[pointer_x][0] == vector_y[pointer_y][0]:
+			inner_product += float(vector_x[pointer_x][1]) * float(vector_y[pointer_y][1])
+			pointer_x += 1
+			pointer_y += 1
+		elif vector_x[pointer_x][0] < vector_y[pointer_y][0]:
+			pointer_x += 1
+		else:
+			pointer_y += 1
+	return(inner_product)
+
 # get date string in following format, 2016-09-01
 def get_date(date_time):
 	return datetime.strftime(date_time,"%Y-%m-%d")
