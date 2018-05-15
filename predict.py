@@ -1,19 +1,13 @@
-def tell_me_buy_or_sell(doc):
-    #do something
-    #return 1:buy -1:sell 0:not sure
-
-# docs = ["doc1","doc2",...] the set of news in a day
-def predict(docs):
+def predict(docs,terms,vector):
     buy_score = 0
     sell_score = 0
     for doc in docs:
-        strategy = tell_me_buy_or_sell(doc)
-        if strategy:
-            weight = like_Asus(doc)
-            if strategy == 1:
-                buy_score += weight
-            else:
-                sell_score += weight
+        strategy = doc["predicted_stock"]
+        weight = likelyhood(doc["content"],terms,vector)
+        if strategy == 1:
+            buy_score += weight
+        else:
+            sell_score += weight
 
     #change condition to modify strategy
     if(buy_score>=sell_score*1.1):
@@ -23,13 +17,12 @@ def predict(docs):
     else
         return 0; #do nothing
 
-# terms = [] of 166 Asus-like term, Asus_vector = [] of Asus 166 word count vector
-
-def like_Asus(doc):
+# terms = [] of 166 Asus-like term, vector = [] of Asus 166 word count vector
+def likelyhood(doc,terms,vector):
     v = []
     for i in range(0,len(terms)):
         v.append(doc.count(terms[i]))
-    return cosine(v,Asus_vector)
+    return cosine(v,vector)
 
 def cosine(vec1,vec2):
     cos = 0
