@@ -9,7 +9,8 @@ from datetime import datetime, timedelta
 def predict_by_randomforest(total_news_dataset,stock_data,news_keyword):
 	
 	# Get the dataframe
-	# news_train = get_dataframe(total_news_dataset,stock_data,news_keyword)
+	total_news = get_total_news(total_news_dataset,stock_data,news_keyword)
+	# news_train = get_dataframe(total_news,stock_data,news_keyword)
 	news_train = pd.read_pickle("svm.p")
 
 	# 建立x, y軸所需的資料
@@ -26,24 +27,42 @@ def predict_by_randomforest(total_news_dataset,stock_data,news_keyword):
 	# Get real training data and testing data
 	train_index = news_train.loc[news_train["date"].isin(train_date["date"].tolist())]
 	test_index = news_train.loc[news_train["date"].isin(test_date["date"].tolist())]
-	train_x = train_index.drop(['id','date','stock'], axis=1).T
-	test_x = train_index["stock"]
-	train_y = test_index.drop(['id','date','stock'], axis=1).T
-	test_x = test_index["stock"]
+	train_x = train_index.drop(['id','date','stock'], axis=1)
+	train_y = train_index["stock"]
+	test_x = test_index.drop(['id','date','stock'], axis=1)
+	test_y = test_index["stock"]
+
+	print("length of train: ",len(train_y))
+	print("length of test: ",len(test_y))
 
 	# 建立 random forest 模型
-	# forest = ensemble.RandomForestClassifier(n_estimators = 5)
-	# forest_fit = forest.fit(train_x, train_y)
+	forest = ensemble.RandomForestClassifier(n_estimators = 5)
+	forest_fit = forest.fit(train_x, train_y)
 	# print(forest_fit)
 
 	# 預測
-	# test_y_predicted = forest.predict(test_x)
+	test_y_predicted = forest.predict(test_x)
+	# print(test_y_predicted)
 
 	# 績效
-	# accuracy = metrics.accuracy_score(test_y, test_y_predicted)
-	# print(accuracy)
+	accuracy = metrics.accuracy_score(test_y, test_y_predicted)
+	print(accuracy)
 
-def get_dataframe(total_news_dataset,stock_data,news_keyword):
+	df_result = test_index[["id","date"]]
+	df_result['predicted_stock'] = test_y_predicted
+	# print(df_result.head(5))
+
+	result_dict = {}
+	for index, row in df_result.iterrows():
+		if not result_dict.__contains__(row["date"]): 
+			result_dict[row["date"]] = []
+		temp_dict = {}
+		temp_dict["content"] = total_news[row["id"]-1]["content"]
+		temp_dict["predicted_stock"] = row["predicted_stock"]
+		result_dict[row["date"]].append(temp_dict)
+	return result_dict
+
+def get_total_news(total_news_dataset,stock_data,news_keyword):
 	total_news = []
 	news_counter = 1
 	for date in total_news_dataset:
@@ -58,6 +77,9 @@ def get_dataframe(total_news_dataset,stock_data,news_keyword):
 				temp_news_array["stock"] = stock_data[two_days_after][1]
 				total_news.append(temp_news_array)
 				news_counter += 1
+	return total_news
+
+def get_dataframe(total_news,stock_data,news_keyword):
 
 	# initiate
 	keyword_df = {}
@@ -150,5 +172,4 @@ def compute_date_after(date,n):
 	temp_date_time = datetime.strptime(date, "%Y-%m-%d")
 	temp_date_time = temp_date_time + timedelta(days = n)
 	return datetime.strftime(temp_date_time,"%Y-%m-%d")
-
 #--------------------------------------------
