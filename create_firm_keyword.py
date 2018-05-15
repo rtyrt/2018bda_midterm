@@ -5,6 +5,7 @@ import collections
 import math
 import operator
 import pickle
+import jieba
 from nltk import ngrams
 from datetime import datetime, timedelta
 
@@ -15,6 +16,7 @@ def get_firm_keyword(total_keyword_num,firm_name):
 	firm_news=pickle.load(f)
 	firm_news = one_array_list(firm_news)
 	result = get_type_news_keyword(firm_news,total_keyword_num,firm_name)
+	print(result)
 	return result
 
 #input : [data]:['news1','news2','news3']
@@ -28,6 +30,7 @@ def one_array_list(data):
 
 # THE FOLLOWING CODE IS COPIED FROM GET_KEYWORD.PY(TF-IDF) AND MODIFIED AS TF 
 def get_type_news_keyword(news_dataset, total_keyword_num, keyword_type):
+	
 	grams_tupples = {}
 	grams = {}
 	tf_tupples = []
@@ -40,18 +43,12 @@ def get_type_news_keyword(news_dataset, total_keyword_num, keyword_type):
 		grams_tupples[news] = []
 		temp_tf_tupples = []
 
-		# Get the terms with tf and df
-		for n in range(2,5):
-			grams = ngrams(news_dataset[news], n)
-			check_status = 1
-			for tupples in grams:
-				for word in tupples:
-					if word.isdigit() or isEnglish(word) or word in "[+——！：；，。？「」、~@#￥%……&*（）／]+":
-						check_status = 0
-				if(check_status):
-					grams_tupples[news].append(tupples)
-					temp_tf_tupples.append(tupples)
-				check_status = 1
+		news_dataset[news] = re.sub("[A-Za-z0-9\[\`\~\。\，\「\」\！\：\!\@\#\$\^\&\*\(\)\=\|\{\}\'\:\;\'\,\[\]\.\<\>\/\?\~\！\@\#\\\&\*\%]", "", news_dataset[news])
+		grams = jieba.cut(news_dataset[news], cut_all=False)
+		for tupples in grams:
+			if len(tupples) > 1 and len(tupples) <= 4:
+				grams_tupples[news].append(tupples)
+				temp_tf_tupples.append(tupples)
 
 		# df means to collect the set of each terms in one news
 		for tmp_tupples in set(temp_tf_tupples):
@@ -67,9 +64,6 @@ def get_type_news_keyword(news_dataset, total_keyword_num, keyword_type):
 				temp_tf_tupples_cleaner += [collect[0] for i in range(0,collect[1])]
 			tf_tupples = temp_tf_tupples_cleaner
 			print("Finish cleaning")
-			# for collect in temp_df_counter.most_common()[:-5001:-1]:
-			# 	df_tupples = [tupple for tupple in df_tupples if not collect[0]]
-			# 	tf_tupples = [tupple for tupple in tf_tupples if not collect[0]]
 		
 		# Count for times it runs
 		count += 1
@@ -92,9 +86,8 @@ def get_type_news_keyword(news_dataset, total_keyword_num, keyword_type):
 	# Write into xls file
 	final_keyword = get_final_key_word(tf_counter,count-1,total_keyword_num,keyword_type)
 	return final_keyword
-  
-  def get_final_key_word(tf_counter,count,keyword_num, keyword_type):
 
+def get_final_key_word(tf_counter,count,keyword_num, keyword_type):
 	total_keyword_array = {}
 	final_keyword_array = []
 	for terms in tf_counter:
@@ -146,6 +139,6 @@ def load_firm_keyword_vector(firm_name,firm_keyword):
 	vector = []
 	for term in range(0,len(firm_keyword)):
 		for news in firm_news:
-			vector.append(news.count(term))
+			vector.append(news.count(firm_keyword[term]))
 	
-	return cosine(v,Asus_vector)
+	return vector
